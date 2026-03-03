@@ -48,7 +48,8 @@ jobs:
             const refs = [...body.matchAll(/#(\d+)/g)].map(m => parseInt(m[1], 10));
             const uniq = [...new Set(refs)];
             if (uniq.length === 0) {
-              console.log('No issue references found in PR body. Skipping reopen.');
+              console.log('No issue references found in PR body. Skipping.');
+              return;
             }
             for (const issue_number of uniq) {
               try {
