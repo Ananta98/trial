@@ -22,8 +22,39 @@ jobs:
           script: |
             const issue = context.payload.issue;
             const candidate = issue.user.login;
-            const body = `Hi @${candidate} — thanks for applying! Please add your profile by opening a pull request that adds a JSON file with your profile under profile-submission.json. In your PR description include "resolves: #${issue.number}" or "closes: #${issue.number}" so we can link it to this application. Once your PR is merged we'll reopen this issue and ask you to proceed with the trial task.`;
-            await github.issues.createComment({ ...context.repo, issue_number: issue.number, body });
+            const body = `# 🎉 Thank you for your application!
+
+Welcome @${candidate}! We're excited to review your submission.
+
+## ✅ What's next?
+1. Familiarize yourself with our [guidelines](https://github.com/holdex/developers/blob/main/.github/CONTRIBUTING.md).
+1. Execute the trial by submitting two pull requests:
+   - **PR #1:** add your profile information to the repository (`profile-submission.json`).
+   - **PR #2:** complete the task we'll provide after your profile PR is merged.
+1. Follow our social channels (feel free to tweet about us!):
+   - [Holdex X](https://x.com/HoldexIo)
+   - [LinkedIn](https://www.linkedin.com/company/holdex)
+
+## How to submit your profile
+1. Fork this repo.
+2. Edit `profile-submission.json` using the template below:
+```json
+{
+  "github_handle": "your_github_username",
+  "full_name": "Your Name",
+  "github_trial_issue_link": "https://github.com/holdex/trial/issues/${issue.number}"
+}
+```
+3. Open a pull request and **link it to this issue** (e.g. include `closes #${issue.number}` in the description).
+
+Once your PR is merged, we'll re‑open this issue and send you the trial instructions.
+
+> If you have any questions, reply here or mention us.``;
+            try {
+              await github.issues.createComment({ ...context.repo, issue_number: issue.number, body });
+            } catch (err) {
+              console.log('Unable to post initial comment:', err.message);
+            }
             try {
               await github.issues.addLabels({ ...context.repo, issue_number: issue.number, labels: ['job-application'] });
             } catch (e) {
