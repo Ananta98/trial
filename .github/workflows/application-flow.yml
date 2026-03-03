@@ -22,14 +22,14 @@ jobs:
             const issue = context.payload.issue;
             const candidate = issue.user.login;
             const commentBody = `Hi @${candidate} — thanks for applying! Please add your profile by opening a pull request that adds a JSON file with your profile under profile-submission.json. In your PR description include "resolves: #${issue.number}" or "closes: #${issue.number}" so we can link it to this application. Once your PR is merged we'll reopen this issue and ask you to proceed with the trial task.`;
-            await github.issues.createComment({ 
+            await github.rest.issues.createComment({ 
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.issue.number,
               body: commentBody
             });
             try {
-              await github.issues.addLabels({ ...context.repo, issue_number: issue.number, labels: ['job-application'] });
+              await github.rest.issues.addLabels({ ...context.repo, issue_number: issue.number, labels: ['job-application'] });
             } catch (e) {
               console.log('Could not add label:', e.message);
             }
@@ -58,7 +58,7 @@ jobs:
               try {
                 await github.issues.update({ ...context.repo, issue_number, state: 'open' });
                 const comment = `Hi — your profile PR (#${pr.number}) was merged. Please proceed with the trial task described in your original application. If you need the trial instructions again, reply here or mention us.`;
-                await github.issues.createComment({ 
+                await github.rest.issues.createComment({ 
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: context.payload.issue.number,
