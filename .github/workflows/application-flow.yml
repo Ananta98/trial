@@ -10,15 +10,11 @@ jobs:
   ask-for-pr:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Comment with PR instructions
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const issue = context.payload.issue;
             const candidate = issue.user.login;
             const commentBody = `Hi @${candidate} — thanks for applying! Please add your profile by opening a pull request that adds a JSON file with your profile under profile-submission.json. In your PR description include "resolves: #${issue.number}" or "closes: #${issue.number}" so we can link it to this application. Once your PR is merged we'll reopen this issue and ask you to proceed with the trial task.`;
             await github.issues.createComment({ 
@@ -37,9 +33,6 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Reopen linked issues and ask to proceed
         uses: actions/github-script@v7
         with:
