@@ -1,0 +1,56 @@
+name: Application Flow
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  ask-for-pr:
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment with PR instructions
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const candidate = issue.user.login;
+            const body = `Hi @${candidate} — thanks for applying! Please add your profile by opening a pull request that adds a JSON file with your profile under profile-submission.json. In your PR description include "resolves: #${issue.number}" or "closes: #${issue.number}" so we can link it to this application. Once your PR is merged we'll reopen this issue and ask you to proceed with the trial task.`;
+            await github.issues.createComment({ ...context.repo, issue_number: issue.number, body });
+            try {
+              await github.issues.addLabels({ ...context.repo, issue_number: issue.number, labels: ['job-application'] });
+            } catch (e) {
+              console.log('Could not add label:', e.message);
+            }
+
+  reopen-issue:
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reopen linked issues and ask to proceed
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || '';
+            const refs = [...body.matchAll(/#(\d+)/g)].map(m => parseInt(m[1], 10));
+            const uniq = [...new Set(refs)];
+            if (uniq.length === 0) {
+              console.log('No issue references found in PR body. Skipping reopen.');
+            }
+            for (const issue_number of uniq) {
+              try {
+                await github.issues.update({ ...context.repo, issue_number, state: 'open' });
+                const comment = `Hi — your profile PR (#${pr.number}) was merged. Please proceed with the trial task described in your original application. If you need the trial instructions again, reply here or mention us.`;
+                await github.issues.createComment({ ...context.repo, issue_number, body: comment });
+              } catch (e) {
+                console.log(`Failed to reopen/comment on issue #${issue_number}:`, e.message);
+              }
+            }
