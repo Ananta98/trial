@@ -47,7 +47,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const prBody = context.payload.pull_request.body || '';
-            const regex = /(?:resolves|closes):?\s*#(\d+)/gi;
+            const regex = /(?:resolves|closes):?\s*(?:#|https:\/\/github\.com\/[^\/]+\/[^\/]+\/issues\/)(\d+)/gi;;
             const matches = [...prBody.matchAll(regex)];
 
             // Extract the numbers and remove duplicates
