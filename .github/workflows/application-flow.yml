@@ -46,30 +46,23 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const pr = context.payload.pull_request;
-            const body = pr.body || '';
-            const regex = /(?:resolves|closes|fixes):?\s*#(\d+)/gi;
-            console.log('PR body:', body);
-            const matches = [...body.matchAll(regex)];
-            console.log('Matches:', matches);
-            const refs = matches.map(m => parseInt(m[1], 10));
-            console.log('Refs:', refs);
-            const uniq = [...new Set(refs)];
-            if (uniq.length === 0) {
-              console.log('No issue references found in PR body. Skipping.');
-              return;
-            }
-            for (const issue_number of uniq) {
+            const prBody = context.payload.pull_request.body || '';
+            const regex = /(?:resolves|closes):?\s*#(\d+)/gi;
+            const matches = [...prBody.matchAll(regex)];
+
+            // Extract the numbers and remove duplicates
+            const issueNumbers = [...new Set(matches.map(m => parseInt(m[1], 10)))];
+
+            for (const issue_number of issueNumbers) {
               try {
-                await github.issues.update({ ...context.repo, issue_number, state: 'open' });
-                const comment = `Hi — your profile PR (#${pr.number}) was merged. Please proceed with the trial task described in your original application. If you need the trial instructions again, reply here or mention us.`;
-                await github.rest.issues.createComment({ 
+                // The actual command to reopen
+                await github.rest.issues.update({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  issue_number: context.payload.issue.number,
-                  body: commentBody
+                  issue_number: issue_number,
+                  state: 'open'
                 });
-              } catch (e) {
-                console.log(`Failed to reopen/comment on issue #${issue_number}:`, e.message);
+              } catch (error) {
+                console.log(`Could not reopen issue #${issue_number}: ${error.message}`);
               }
             }
