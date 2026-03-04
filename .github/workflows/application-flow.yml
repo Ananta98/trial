@@ -47,6 +47,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const prBody = context.payload.pull_request.body || '';
+            console.log(prBody);
             const regex = /(?:resolves|closes):?\s*(?:#|https:\/\/github\.com\/[^\/]+\/[^\/]+\/issues\/)(\d+)/gi;;
             const matches = [...prBody.matchAll(regex)];
 
