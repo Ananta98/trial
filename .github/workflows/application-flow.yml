@@ -49,8 +49,11 @@ jobs:
             const pr = context.payload.pull_request;
             const body = pr.body || '';
             const regex = /(?:resolves|closes|fixes):?\s*#(\d+)/gi;
+            console.log('PR body:', body);
             const matches = [...body.matchAll(regex)];
+            console.log('Matches:', matches);
             const refs = matches.map(m => parseInt(m[1], 10));
+            console.log('Refs:', refs);
             const uniq = [...new Set(refs)];
             if (uniq.length === 0) {
               console.log('No issue references found in PR body. Skipping.');
